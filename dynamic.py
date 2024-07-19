@@ -12,12 +12,12 @@ import pandas as pd
 import streamlit as st
 chrome_options = webdriver.ChromeOptions()
 
-service = Service(
-  ChromeDriverManager().install()
-)
+# service = Service(
+#   ChromeDriverManager().install()
+# )
 
 driver = webdriver.Chrome(
-  service=service, options=chrome_options
+  options=chrome_options
 )
 
 def scrapper(input_data):  # corrected function name and parameter name
