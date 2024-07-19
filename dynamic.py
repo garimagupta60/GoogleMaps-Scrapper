@@ -3,7 +3,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager
 import time
 import json
 import re
@@ -107,6 +107,8 @@ def scrapper(input_data):  # corrected function name and parameter name
             df.to_csv("map.csv", index=False)
         except Exception as e:
             print(e)
+    except:
+        driver.quit()
     finally:
         driver.quit()
 
@@ -120,8 +122,8 @@ def main():
   if st.button('Search'):
       scrapper(encoded_query)
       st.success("Finally scrapped")
+      
 if __name__=='__main__':
     main()
     
      
-
