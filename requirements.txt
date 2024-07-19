@@ -79,5 +79,4 @@ websocket-client==1.8.0
 wsproto==1.2.0
 streamlit
 selenium
-webdriver-manager==3.4.2  # Replace with a version that works for you
 pandas
