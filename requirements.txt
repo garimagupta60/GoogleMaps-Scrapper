@@ -1,4 +1,4 @@
 streamlit
 selenium
-webdriver-manager
+webdriver-manager==3.4.2  # Replace with a version that works for you
 pandas
