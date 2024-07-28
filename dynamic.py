@@ -115,7 +115,8 @@ def scrapper(input_data):  # corrected function name and parameter name
         with open('map.csv', 'w', encoding='utf-8') as f:
             f.write(csv_data)
 
-        return csv_data
+        # return csv_data
+        return csv_data if csv_data.strip() else ""
 
         # with open('results.json', 'w', encoding='utf-8') as f:
         #     json.dump(results, f, ensure_ascii=False, indent=2)
@@ -138,13 +139,17 @@ def main():
   html_temp=""
   if st.button('Search'):
       csv_data=scrapper(encoded_query)
-      st.success("Finally scrapped")
-      st.download_button(
-                label="Download CSV",
-                data=csv_data,
-                file_name='map.csv',
-                mime='text/csv'
-            )
+      if csv_data:
+        st.success("Finally scrapped")
+        st.download_button(
+                  label="Download CSV",
+                  data=csv_data,
+                  file_name='map.csv',
+                  mime='text/csv'
+              )
+      else:
+            st.error("No data found or an error occurred.")
+
       
 if __name__=='__main__':
     main()
