@@ -11,6 +11,10 @@ import urllib.parse
 import pandas as pd
 import streamlit as st
 chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument('--disable-gpu')  # Sometimes needed for headless mode
 
 # service = Service(
 #   ChromeDriverManager().install()
