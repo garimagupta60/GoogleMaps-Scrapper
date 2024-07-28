@@ -1,41 +1,35 @@
+import streamlit as st
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from webdriver_manager.chrome import ChromeDriverManager
-import time
+import pandas as pd
 import json
 import re
 import urllib.parse
-import pandas as pd
-import streamlit as st
+
+# Setup Chrome options for headless operation
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
-chrome_options.add_argument('--disable-gpu')  # Sometimes needed for headless mode
+chrome_options.add_argument('--disable-gpu')
 
-# service = Service(
-#   ChromeDriverManager().install()
-# )
+# Initialize the Chrome WebDriver
+driver = webdriver.Chrome(options=chrome_options)
 
-driver = webdriver.Chrome(
-  options=chrome_options
-)
-
-def scrapper(input_data):  # corrected function name and parameter name
-    try: 
-        # query = input("Enter your search query: ")
-        # encoded_query = urllib.parse.quote_plus(query)
-
+def scrapper(input_data):
+    results = []
+    try:
         driver.get(f'https://www.google.com/maps/search/{input_data}/')
 
         try:
-            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "form:nth-child(2)"))).click()
-        except Exception:
-            pass
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "form:nth-child(2)"))).click()
+        except Exception as e:
+            print(f"Error clicking on form: {e}")
 
+        # Wait for page to load and find the scrollable div
         scrollable_div = driver.find_element(By.CSS_SELECTOR, 'div[role="feed"]')
         driver.execute_script("""
             var scrollableDiv = arguments[0];
@@ -70,14 +64,12 @@ def scrapper(input_data):  # corrected function name and parameter name
 
         items = driver.find_elements(By.CSS_SELECTOR, 'div[role="feed"] > div > div[jsaction]')
 
-        results = []
         for item in items:
             data = {}
-
             try:
                 data['title'] = item.find_element(By.CSS_SELECTOR, ".fontHeadlineSmall").text
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Title extraction error: {e}")
 
             try:
                 text_content = item.text
@@ -85,50 +77,66 @@ def scrapper(input_data):  # corrected function name and parameter name
                 matches = re.findall(address_element, text_content)
                 unique_address = list(set(matches))
                 data['address'] = unique_address[0] if unique_address else None
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Address extraction error: {e}")
 
             try:
-                text_content = item.text
                 phone_pattern = r'((\+?\d{1,2}[ -]?)?(\(?\d{3}\)?[ -]?\d{3,4}[ -]?\d{4}|\(?\d{2,3}\)?[ -]?\d{2,3}[ -]?\d{2,3}[ -]?\d{2,3}))'
                 matches = re.findall(phone_pattern, text_content)
-
                 phone_numbers = [match[0] for match in matches]
                 unique_phone_numbers = list(set(phone_numbers))
-
-                data['phone'] = unique_phone_numbers[0] if unique_phone_numbers else None   
-            except Exception:
-                pass
+                data['phone'] = unique_phone_numbers[0] if unique_phone_numbers else None
+            except Exception as e:
+                print(f"Phone extraction error: {e}")
 
             if data.get('title'):
                 results.append(data)
 
-        with open('results.json', 'w', encoding='utf-8') as f:
-            json.dump(results, f, ensure_ascii=False, indent=2)
+        # Convert results to JSON and CSV formats
+        results_json = json.dumps(results, ensure_ascii=False, indent=2)
+        df = pd.DataFrame(data=results)
+        csv_data = df.to_csv(index=False)
 
-        try:
-            df = pd.DataFrame(data=results)
-            df.to_csv("map.csv", index=False)
-        except Exception as e:
-            print(e)
-    except:
-        driver.quit()
+        # Save to files
+        with open('results.json', 'w', encoding='utf-8') as f:
+            f.write(results_json)
+
+        with open('map.csv', 'w', encoding='utf-8') as f:
+            f.write(csv_data)
+
+        return results_json, csv_data
+
+    except Exception as e:
+        print(f"Scraper error: {e}")
     finally:
         driver.quit()
 
-
-
 def main():
-  st.title('Google Map Scrapper')
-  query = st.text_input("Enter your search query: ")
-  encoded_query = urllib.parse.quote_plus(query)
-  html_temp=""
-  if st.button('Search'):
-      scrapper(encoded_query)
-      st.success("Finally scrapped")
-      
-if __name__=='__main__':
-    main()
-    
-     
+    st.title('Google Map Scraper')
+    query = st.text_input("Enter your search query: ")
 
+    if st.button('Search'):
+        results_json, csv_data = scrapper(query)
+
+        if results_json and csv_data:
+            st.success("Scraped data is available for download")
+
+            # Provide download buttons for JSON and CSV files
+            st.download_button(
+                label="Download JSON",
+                data=results_json,
+                file_name="results.json",
+                mime="application/json"
+            )
+
+            st.download_button(
+                label="Download CSV",
+                data=csv_data,
+                file_name="map.csv",
+                mime="text/csv"
+            )
+        else:
+            st.error("No data found or an error occurred.")
+
+if __name__ == '__main__':
+    main()
