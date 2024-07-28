@@ -136,23 +136,15 @@ def main():
   query = st.text_input("Enter your search query: ")
   encoded_query = urllib.parse.quote_plus(query)
   html_temp=""
-  # if st.button('Search'):
-  #     scrapper(encoded_query)
-  #     st.success("Finally scrapped")
   if st.button('Search'):
-        csv_data = scrapper(encoded_query)
-        if csv_data:  # Check if `csv_data` is not None
-            st.success("Finally scrapped")
-
-            # Add download button for CSV
-            st.download_button(
+      csv_data=scrapper(encoded_query)
+      st.success("Finally scrapped")
+      st.download_button(
                 label="Download CSV",
                 data=csv_data,
                 file_name='map.csv',
                 mime='text/csv'
             )
-        else:
-            st.error("An error occurred while scraping.")
       
 if __name__=='__main__':
     main()
