@@ -29,7 +29,7 @@ def scrapper(input_data):  # corrected function name and parameter name
     try: 
         # query = input("Enter your search query: ")
         # encoded_query = urllib.parse.quote_plus(query)
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
         driver.get(f'https://www.google.com/maps/search/{input_data}/')
 
